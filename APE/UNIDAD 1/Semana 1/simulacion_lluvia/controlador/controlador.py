@@ -2,7 +2,6 @@ from modelo.datos import DATOS
 from modelo.modelo_lluvia import ModeloLluvia
 from vista import vista_tabla, vista_grafica
 
-
 class Controlador:
     def __init__(self):
         self.original = ModeloLluvia("Modelo original")

@@ -6,13 +6,12 @@ class ModeloLluvia:
         self.w_h = w_h              # peso humedad
         self.w_n = w_n              # peso nubosidad
         self.w_t = w_t              # peso factor de temperatura
-        self.umbrales = umbrales    # límites entre estados
+        self.umbrales = umbrales    # estados
 
     def factor_temperatura(self, temp):
         # Tf según la tabla: 1.00 (<=10 °C) baja 0.05 por cada °C hasta 0.10 (>= 28 °C).
-        # Así también funcionan temperaturas impares como 15 o 17.
-        tf = 1 - 0.05 * (temp - 10)
-        return max(0.10, min(1.00, tf))
+        tf = 1 - 0.05 * (temp - 10) 
+        return max(0.10, min(1.00, tf)) # nunca pasa de 1.00 (≤10 °C) ni baja de 0.10 (≥28 °C).
 
     def indice(self, h, n, tf):
         return self.w_h * h + self.w_n * n + self.w_t * tf
@@ -34,7 +33,7 @@ class ModeloLluvia:
             h = humedad / 100
             n = nubosidad / 100
             tf = self.factor_temperatura(temp)
-            i = round(self.indice(h, n, tf), 4)
+            i = round(self.indice(h, n, tf), 4) # redondeo a 4 decimales
             resultados.append({
                 "hora": hora, "humedad": humedad, "nubosidad": nubosidad,
                 "temp": temp, "H": h, "N": n, "Tf": round(tf, 2),

@@ -5,7 +5,7 @@
 **Docente:** Cael Alejandro Soto Castillo.
 
 Simulación de la atmósfera durante 24 horas para determinar en qué horas el modelo
-considera que hay posibilidad de lluvia, usando:
+considera que hay posibilidad de lluvia, usando la formula:
 
 ```
 I = 0.5*H + 0.3*N + 0.2*Tf
@@ -27,6 +27,7 @@ I = 0.5*H + 0.3*N + 0.2*Tf
 ```
 simulacion_lluvia/
 ├── main.py                      # punto de entrada
+├── tablas/                      # imagenes de las tablas pedidas por la ficha (capturas colocadas manualmente, pues son de la terminal)
 ├── requirements.txt             # librerías necesarias
 ├── modelo/
 │   ├── datos.py                 # datos de la tabla (hora, humedad, nubosidad, temp.)
@@ -36,7 +37,7 @@ simulacion_lluvia/
 │   └── vista_grafica.py         # gráficas con matplotlib
 ├── controlador/
 │   └── controlador.py           # une modelo y vistas
-└── graficas/                    # imágenes generadas al ejecutar
+└── graficas/                   # imágenes generadas al ejecutar
 ```
 
 ## Cómo ejecutar (Ubuntu / terminal)
@@ -64,7 +65,7 @@ python3 main.py
 ```
 
 Se muestran dos tablas (modelo original y ajustado) y tres gráficas. Cada gráfica se
-cierra para ver la siguiente y todas quedan guardadas en `graficas/`.
+cierra para ver la siguiente y todas quedan guardadas en la carpeta `graficas/`.
 Para salir del entorno virtual: `deactivate`.
 
 > Se usa entorno virtual porque Ubuntu recientes no dejan instalar paquetes con `pip`
@@ -72,7 +73,7 @@ Para salir del entorno virtual: `deactivate`.
 
 ## Ajuste del modelo
 
-Según lo indicado por el docente, el ajuste consiste en bajar cada coeficiente en 0.1:
+Según lo indicado, el ajuste consiste en bajar cada coeficiente en 0.1, entonces quedaría:
 
 ```
 Original: I = 0.5*H + 0.3*N + 0.2*Tf
@@ -102,14 +103,18 @@ Los umbrales de los estados no se modifican. Los parámetros están en
   (I >= 0.75): el modelo se vuelve más conservador y casi todas las horas bajan un
   estado. Esto muestra que los pesos y los umbrales deben calibrarse juntos.
 - Cada variable aporta de forma lineal: si H sube 0.1, I sube 0.05 en el original y 0.04
-  en el ajustado; con N sube 0.03 y 0.02; con Tf sube 0.02 y 0.01.
+  en el ajustado, con N sube 0.03 y 0.02, y con Tf sube 0.02 y 0.01.
 - Tf es decreciente: mientras más baja la temperatura, mayor el factor y mayor el índice.
 - A lo largo del día el índice baja al mediodía (12:00), sube hasta su máximo a las 18:00
-  (humedad 92 % y nubosidad 95 %) y luego decrece hasta las 22:00. El ajuste conserva
-  esa forma, pero con valores más bajos.
-- La humedad es la variable que más mueve el índice; la temperatura es la que menos.
+  (humedad 92% y nubosidad 95%) y luego decrece hasta las 22:00. El ajuste conserva
+  esa forma pero con valores más bajos.
+- La humedad es la variable que más mueve el índice, mientras que la temperatura es la que menos.
 
-## Preguntas de control (sacadas del notebook compartido / practica)
+## Conclusión
+
+Los pesos y los umbrales dependen uno del otro, el cambiar uno sin ajustar el otro vuelve el modelo demasiado optimista o demasiado conservador.
+
+## Preguntas de control (**sacadas del notebook compartido** / practica)
 
 1. **¿Qué es un modelo matemático?** Es una representación simplificada y abstracta
     de  un sistema o fenómeno del mundo real expresada mediante reglas, ecuaciones, conjuntos o 
@@ -117,7 +122,7 @@ Los umbrales de los estados no se modifican. Los parámetros están en
 2. **¿Diferencia entre variable y parámetro?** La variable cambia durante la simulación
    (humedad, nubosidad, temperatura), mientras que el parámetro es un valor fijo del modelo que se
    ajusta (ej. Los pesos 0.5, 0.3, 0.2 y los umbrales).
-3. **¿Qué representa P0?** representa la población inicial (o el estado/cantidad inicial
+3. **¿Qué representa P0?** Representa la población inicial (o el estado/cantidad inicial
     de individuos en el tiempo t = 0).
 4. **¿Qué ocurre cuando r < 0?** El sistema experimenta un decrecimiento exponencial.
 5. **¿Limitaciones del modelo exponencial?** 
@@ -125,7 +130,7 @@ Los umbrales de los estados no se modifican. Los parámetros están en
     - Riesgo de colapso y extinción: Al carecer de mecanismos de autorregulación dependientes de la densidad, las poblaciones en crecimiento no ajustan su reproducción antes de agotar los recursos.
     - Simplificación del entorno real: No contempla factores clave como barreras geográficas, competencia entre individuos, variabilidad climática o heterogeneidad del espacio.
 
-## Prompt que usamos
+## Prompt utilizado
 
 > Prompt: En base a la siguiente ficha, dame las pautas, recursos e instrucciones
 > a seguir para yo mismo hacer la actividad (entregables y que debería hacer o consultar), ademas de que se deben cumplir los siguientes puntos: > Usar patron o patrones de diseño para la practica (una pequeña arquitectura)
@@ -135,6 +140,7 @@ Los umbrales de los estados no se modifican. Los parámetros están en
 
 ## Dónde se usó IA
 
+- Explicación de la actividad, pautas, conceptos y contextualización.
 - Estructura de carpetas MVC: `modelo_lluvia.py`, `vista_tabla.py`, `vista_grafica.py` y `controlador.py`.
-- Redacción inicial de este README.
-- Todo fue revisado, ejecutado y probado en Linux/Ubuntu desde la terminal.
+- Redacción inicial de este README (formato para que se vea mejor visualmente y cumpla lo especificado).
+- Mejora de código y construcción de código en las clases .py de las vistas para las tablas.

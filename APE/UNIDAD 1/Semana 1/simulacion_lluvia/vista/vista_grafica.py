@@ -1,14 +1,12 @@
-"""Vista: gráficas con matplotlib."""
+# Vista: gráficas con matplotlib.
 import os
 import matplotlib.pyplot as plt
 
 CARPETA = "graficas"
 
-
 def _guardar(nombre_archivo):
     os.makedirs(CARPETA, exist_ok=True)
     plt.savefig(os.path.join(CARPETA, nombre_archivo), dpi=120)
-
 
 def grafica_indice(modelo, resultados, archivo):
     horas = [r["hora"] for r in resultados]
@@ -26,7 +24,6 @@ def grafica_indice(modelo, resultados, archivo):
     plt.legend()
     _guardar(archivo)
     plt.show()
-
 
 def grafica_comparacion(res_original, res_ajustado, archivo):
     horas = [r["hora"] for r in res_original]

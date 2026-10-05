@@ -1,5 +1,3 @@
-# MUestra la tabla por consola.
-
 def mostrar_tabla(nombre, resultados):
     print(f"\n=== {nombre} ===")
     print(f"{'Hora':<6}{'Hum':>5}{'Nub':>5}{'Temp':>6}"
