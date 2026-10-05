@@ -1,8 +1,10 @@
 # Práctica 01 - Construcción y simulación computacional de un modelo matemático
 
 **Asignatura:** Simulación - Ciclo 5 - Carrera de Computación, UNL
+
 **Docente:** José O. Guamán Q.
-**Docente:** Cael Alejandro Soto Castillo.
+
+**Estudiante:** Cael Alejandro Soto Castillo.
 
 Simulación de la atmósfera durante 24 horas para determinar en qué horas el modelo
 considera que hay posibilidad de lluvia, usando la formula:
@@ -133,10 +135,7 @@ Los pesos y los umbrales dependen uno del otro, el cambiar uno sin ajustar el ot
 ## Prompt utilizado
 
 > Prompt: En base a la siguiente ficha, dame las pautas, recursos e instrucciones
-> a seguir para yo mismo hacer la actividad (entregables y que debería hacer o consultar), ademas de que se deben cumplir los siguientes puntos: > Usar patron o patrones de diseño para la practica (una pequeña arquitectura)
-> Resumen: se pidió una solución en Python, simple, con arquitectura
-> Modelo-Vista-Controlador, README, requirements.txt y gráficas con el código de
-> matplotlib compartido por el docente.
+> a seguir para yo mismo hacer la actividad (entregables y que debería hacer o consultar), ademas de que se deben cumplir los siguientes puntos: Usar patron o patrones de diseño para la practica (una pequeña arquitectura).
 
 ## Dónde se usó IA
 
