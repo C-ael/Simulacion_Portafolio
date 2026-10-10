@@ -116,22 +116,6 @@ Los umbrales de los estados no se modifican. Los parámetros están en
 
 Los pesos y los umbrales dependen uno del otro, el cambiar uno sin ajustar el otro vuelve el modelo demasiado optimista o demasiado conservador.
 
-## Preguntas de control (**sacadas del notebook compartido** / practica)
-
-1. **¿Qué es un modelo matemático?** Es una representación simplificada y abstracta
-    de  un sistema o fenómeno del mundo real expresada mediante reglas, ecuaciones, conjuntos o 
-    probabilidades.
-2. **¿Diferencia entre variable y parámetro?** La variable cambia durante la simulación
-   (humedad, nubosidad, temperatura), mientras que el parámetro es un valor fijo del modelo que se
-   ajusta (ej. Los pesos 0.5, 0.3, 0.2 y los umbrales).
-3. **¿Qué representa P0?** Representa la población inicial (o el estado/cantidad inicial
-    de individuos en el tiempo t = 0).
-4. **¿Qué ocurre cuando r < 0?** El sistema experimenta un decrecimiento exponencial.
-5. **¿Limitaciones del modelo exponencial?** 
-    - Ausencia de capacidad de carga (K): Asume recursos e espacio infinitos.
-    - Riesgo de colapso y extinción: Al carecer de mecanismos de autorregulación dependientes de la densidad, las poblaciones en crecimiento no ajustan su reproducción antes de agotar los recursos.
-    - Simplificación del entorno real: No contempla factores clave como barreras geográficas, competencia entre individuos, variabilidad climática o heterogeneidad del espacio.
-
 ## Prompt utilizado
 
 > Prompt: En base a la siguiente ficha, dame las pautas, recursos e instrucciones

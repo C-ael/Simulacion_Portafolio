@@ -1,4 +1,3 @@
-# Vista: gráficas con matplotlib.
 import os
 import matplotlib.pyplot as plt
 

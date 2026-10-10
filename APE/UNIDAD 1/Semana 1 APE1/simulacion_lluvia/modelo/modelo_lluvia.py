@@ -1,4 +1,4 @@
-# Modelo matemático: I = a*H + b*N + c*Tf
+# Modelo: I = a*H + b*N + c*Tf
 
 class ModeloLluvia:
     def __init__(self, nombre, w_h=0.5, w_n=0.3, w_t=0.2, umbrales=(0.40, 0.60, 0.75)):
@@ -33,7 +33,7 @@ class ModeloLluvia:
             h = humedad / 100
             n = nubosidad / 100
             tf = self.factor_temperatura(temp)
-            i = round(self.indice(h, n, tf), 4) # redondeo a 4 decimales
+            i = round(self.indice(h, n, tf), 4)
             resultados.append({
                 "hora": hora, "humedad": humedad, "nubosidad": nubosidad,
                 "temp": temp, "H": h, "N": n, "Tf": round(tf, 2),
