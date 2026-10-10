@@ -78,7 +78,7 @@ simulacion_poblacion/
 ├── .gitignore
 ├── modelo/
 │   ├── parametros.py          # datos de entrada y cálculo de P0, r, tiempo
-│   └── modelos.py             # los cuatro modelos (clase Modelo + una clase por modelo)
+│   └── modelos.py             # los cuatro modelos
 ├── vista/
 │   ├── vista_consola.py       # parámetros y tabla de resultados por consola
 │   └── vista_grafica.py       # las tres gráficas
@@ -110,25 +110,6 @@ Población final (período 6) con `r ≈ 0.1318`, `sigma = 50`, `dt = 0.1`. El d
 ![Influencia de r](graficas/influencia_r.png)
 ![Efecto de sigma](graficas/efecto_sigma.png)
 
-### Interpretación matemática
-
-- **Determinístico vs continuo:** el modelo continuo con Euler aproxima la misma curva
-  exponencial. LOs resultados dan 2204.7 y 2193.4 porque Euler con `dt = 0.1` comete un error pequeño. Si
-  `dt` se hace más pequeño, el resultado se acerca al exacto.
-- **Discreto:** el modelo discreto es Euler con `dt = 1` (con ese paso ambos dan 2101.6). Como
-  el crecimiento se aplica una sola vez por período y no de forma continua, da menos que el
-  exponencial (`(1 + r)^t` es menor que `e^(r·t)`).
-- **Influencia de r:** `r` está en el exponente así que el efecto crece con el tiempo. Con
-  `P0 = 1000` y 6 períodos: `r = -0.10` baja a 548.8 (decrecimiento), `r = 0` se queda en
-  1000, `r = 0.05` llega a 1349.9, `r = 0.13` a 2181.5 y `r = 0.20` a 3320.1.
-  `r > 0` crece, `r = 0` es constante y `r < 0` decrece.
-- **Aleatoriedad:** con `sigma = 0` el estocástico es igual al discreto (2102 al final con
-  esta semilla, por el redondeo el discreto da 2101.6). Al subir `sigma` la trayectoria se
-  aleja de la determinística: con `sigma = 200` termina en 1630. El ruido es aditivo, así que
-  cada error se arrastra a los períodos siguientes. Si se cambia la semilla, la trayectoria
-  cambia, mientras que los modelos determinísticos siempre dan lo mismo.
-- **Efecto del ruido en la media:** una sola ejecución estocástica no es representativa, solo
-  muestra una de las trayectorias posibles.
 
 ### Bibliografía
 
