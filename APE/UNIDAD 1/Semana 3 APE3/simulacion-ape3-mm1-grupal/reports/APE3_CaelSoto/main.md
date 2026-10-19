@@ -213,16 +213,6 @@ semilla derivada de forma determinista de la semilla base, repetir
 corrida se atendieron del orden de $10\,000$ clientes en el escenario 1,
 $12\,500$ en el escenario 2 y $14\,400$ en el escenario 3.
 
-**Justificación del número de réplicas.** Una sola corrida no es
-evidencia suficiente cuando el sistema está cerca de la saturación: con
-$\rho = 0{,}967$ la cola tarda mucho en vaciarse después de una racha de
-llegadas, así que las esperas de clientes seguidos están muy
-relacionadas entre sí y una corrida aporta menos información de la que
-parece. Por eso cada escenario se repite 10 veces con semillas distintas
-y se reporta el promedio de las réplicas junto con su intervalo de
-confianza, que es lo que permite afirmar si la teoría queda o no dentro
-del rango de lo simulado.
-
 # Resultados esperados
 
 - Un sistema M/M/1 funcional mediante SimPy.
@@ -732,7 +722,7 @@ interacciones):
 - Los resultados numéricos, las tablas y las gráficas provienen de la
   ejecución del programa por parte del estudiante.
 
-**Alcance y verificación.** La inteligencia artificial **no se usó para
+**Alcance y verificación:** La inteligencia artificial **no se usó para
 elaborar el informe completo**. El estudiante revisó los textos,
 comprobó que los valores y comentarios coincidieran con sus propios
 resultados y es responsable del contenido final. Dado que las
