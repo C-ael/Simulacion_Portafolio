@@ -1,4 +1,5 @@
 # Simulación del sistema M/M/1 con SimPy.
+# Yield: Pausa ese cliente hasta que pase el tiempo o se libere el servidor.
 import random
 import simpy
 
@@ -29,6 +30,7 @@ class SistemaMM1:
         # Cada vuelta del while es un cliente nuevo.
         # El yield hace que el reloj avance hasta que el cliente llega.
         while True:
+            # tiempos aleatorios (expovariate - distribución exponencial)
             tiempo_entre_llegadas = self.azar.expovariate(self.llegada)
             yield self.entorno.timeout(tiempo_entre_llegadas)
             self.entorno.process(self.atender_cliente())
@@ -40,6 +42,7 @@ class SistemaMM1:
             yield turno                             # espera aquí hasta que el servidor esté libre
             self.esperas.append(self.entorno.now - hora_llegada)
             self.anotar_cola()                      # ya salió de la cola
+            # tiempos aleatorios (expovariate - distribución exponencial)
             tiempo_servicio = self.azar.expovariate(self.servicio)
             yield self.entorno.timeout(tiempo_servicio)     # lo atienden
         # Al salir del with el servidor queda libre para el siguiente cliente
@@ -48,11 +51,14 @@ class SistemaMM1:
         # Guarda cuántos clientes están esperando en este momento
         self.historial_cola.append((self.entorno.now, len(self.servidor.queue)))
 
+    # Espera promedio (Wq)
+    # Suma las esperas de todos los clientes y divide entre cuántos hubo
     def espera_promedio(self):
         if len(self.esperas) == 0:
             return 0
         return sum(self.esperas) / len(self.esperas)
 
+    # Cola promedio (Lq)
     def cola_promedio(self):
         # El tamaño de la cola cambia con el tiempo, así que cada tamaño
         # se multiplica por el tiempo que duró y al final se divide entre el total.

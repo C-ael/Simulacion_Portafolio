@@ -1,0 +1,514 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{array,tabularx,makecell,longtable}
+\usepackage[table]{xcolor}
+\usepackage{fancyhdr,titlesec,helvet,ragged2e,enumitem,setspace}
+\usepackage{booktabs,alltt,amsmath,float,placeins,needspace}
+\usepackage{xurl}
+\usepackage{hyperref}
+\usepackage{caption}
+
+\raggedbottom
+\renewcommand{\familydefault}{\sfdefault}
+\geometry{a4paper,left=3.0cm,right=3.0cm,top=2.35cm,bottom=2.35cm,
+  headheight=1.9cm,headsep=0.45cm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.22em}
+\setlength{\emergencystretch}{2em}
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.08}
+
+% ---------- Paleta institucional ----------
+\definecolor{headerblue}{RGB}{19,93,126}
+\definecolor{rowlight}{RGB}{205,235,248}
+\definecolor{borderblue}{RGB}{64,160,206}
+
+% ---------- Columnas y estilos de tabla ----------
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\newcommand{\cab}[1]{\textbf{\textcolor{white}{#1}}}
+\newcommand{\tabestilo}{\arrayrulecolor{borderblue}\setlength{\arrayrulewidth}{0.75pt}\renewcommand{\arraystretch}{1.2}}
+
+% ---------- Marcas de lo que falta por completar ----------
+% \pendiente{...}  -> texto o tarea que el equipo debe escribir
+% \pv{...}         -> valor numerico que se toma de la corrida
+\newcommand{\pendiente}[1]{\textcolor{red}{\textbf{[PENDIENTE: #1]}}}
+\newcommand{\pv}[1]{\textcolor{red}{\textbf{[#1]}}}
+
+% ---------- Figuras: si el archivo existe en figures/ lo inserta;
+% si no, deja un recuadro rojo con el nombre que debe tener ----------
+% \figura{archivo.pdf}{alto relativo}{pie de figura}{etiqueta}
+\newcommand{\figura}[4]{%
+  \begin{figure}[H]
+  \centering
+  \IfFileExists{figures/#1}%
+    {\includegraphics[width=\textwidth,height=#2\textheight,keepaspectratio]{figures/#1}}%
+    {\fbox{\parbox[c][4.5cm][c]{0.92\textwidth}{\centering\pendiente{insertar \texttt{\detokenize{figures/#1}}}}}}%
+  \caption{#3}\label{#4}
+  \end{figure}}
+
+\hypersetup{colorlinks=true,linkcolor=headerblue,citecolor=headerblue,urlcolor=headerblue,
+  pdftitle={Reporte Técnico APE 004: Modelo SIR en Java y NetLogo},
+  pdfauthor={Cael Alejandro Soto Castillo}}
+\captionsetup{font=small,labelfont=bf,skip=6pt}
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
+\setlist{itemsep=0.25em,topsep=0.35em,leftmargin=*}
+\graphicspath{{figures/}{assets/}}
+
+% ---------- Encabezado ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\IfFileExists{assets/reporte_tecnico_overleaf_logo.png}%
+  {\includegraphics[height=1.35cm]{assets/reporte_tecnico_overleaf_logo.png}}%
+  {\textbf{UNL}}}
+\fancyhead[R]{\vspace{0.1cm}\small FEIRNNR - Carrera de Computación}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\makeatletter
+\renewcommand{\headrule}{{\color{gray!65}\hrule width\headwidth height\headrulewidth\vskip-\headrulewidth}}
+\makeatother
+
+% ---------- Titulos ----------
+\titleformat{\section}{\bfseries\fontsize{15}{17}\selectfont}{\thesection.}{0.8em}{}
+\titlespacing*{\section}{0pt}{1.0ex}{0.4ex}
+\titleformat{\subsection}{\bfseries\fontsize{12}{14}\selectfont}{\thesubsection.}{0.7em}{}
+\titlespacing*{\subsection}{0pt}{1.0ex}{0.4ex}
+
+\begin{document}
+\thispagestyle{fancy}
+\vspace*{0.15cm}
+
+\begin{center}
+{\bfseries\fontsize{23}{26}\selectfont
+Reporte Técnico de Actividades\\
+Práctico-Experimentales Nro. 004\par}
+\end{center}
+
+% =====================================================================
+\section{Datos de Identificación del Estudiante y la Práctica}
+\noindent
+\begin{tabularx}{\textwidth}{|L{0.43\textwidth}|Y|}
+\hline
+\textbf{Nombre del estudiante(s)} & Cael Alejandro Soto Castillo \\ \hline
+\textbf{Asignatura} & Simulación \\ \hline
+\textbf{Ciclo} & 5 A \\ \hline
+\textbf{Unidad} & U1: Introducción a la Simulación \\ \hline
+\makecell[l]{\textbf{Resultado de aprendizaje}\\\textbf{de la unidad}} & R1. Aplica análisis estadísticos de los datos de la Simulación para mejorar la calidad de los resultados, bajo los principios de solidaridad, transparencia, responsabilidad y honestidad. \\ \hline
+\textbf{Práctica Nro.} & 004 \\ \hline
+\textbf{Título de la Práctica} & Análisis comparativo de herramientas de simulación mediante un modelo común \\ \hline
+\textbf{Nombre del Docente} & José O. Guamán Q. \\ \hline
+\textbf{Fecha} & \makecell[l]{22 de octubre de 2026\\23 de octubre de 2026} \\ \hline
+\textbf{Horario} & \makecell[l]{Jueves 10h30 a 11h30\\Viernes 07h30 a 09h30} \\ \hline
+\textbf{Lugar} & Aula \\ \hline
+\textbf{Tiempo planificado en el Sílabo} & 3 horas \\ \hline
+\end{tabularx}
+
+% =====================================================================
+\section{Objetivo(s) de la Práctica}
+Comparar diferentes lenguajes y plataformas para la implementación de modelos de simulación~\cite{guia}.
+\begin{enumerate}
+  \item Implementar un modelo sencillo (epidemiológico SIR) con las mismas reglas y parámetros en distintas herramientas.
+  \item Comparar la sintaxis, la facilidad de implementación y la visualización de cada herramienta.
+  \item Identificar el ámbito de aplicación de cada herramienta y explicar las diferencias producidas por la generación de números aleatorios.
+\end{enumerate}
+En este trabajo se desarrollaron y ejecutaron las versiones en \textbf{Java y NetLogo}. De las tres herramientas de la ficha, a este grupo le correspondió programar la versión en Java, por lo que no se implementó Python/SimPy y no se presentan resultados experimentales de esa herramienta.
+
+% =====================================================================
+\section{Materiales y reactivos}
+\begin{itemize}
+  \item Ficha de la práctica (Guía de Actividades Práctico-Experimentales Nro. 004) y código fuente del proyecto.
+  \item Modelo SIR con población de 100 personas y estados S, I y R.
+  \item Archivos CSV de resultados y de parámetros para pasar la información de Java a NetLogo.
+  \item JDK 11 o posterior y NetLogo (con su extensión \texttt{csv}).
+\end{itemize}
+
+% =====================================================================
+\section{Equipos y herramientas}
+\begin{itemize}
+  \item Computador con sistema operativo y editor de código.
+  \item JDK 11 o posterior para compilar y ejecutar Java (se compila con \texttt{--release 11}). Solo se usa la biblioteca estándar: no se necesita Maven, Gradle ni librerías externas.
+  \item NetLogo 7.0.4 de escritorio~\cite{netlogo}, con la extensión \texttt{csv} que ya incluye.
+  \item Git y GitHub para el control de versiones.
+  \item \LaTeX{} (Overleaf) para redactar el informe.
+\end{itemize}
+
+% =====================================================================
+\section{Procedimiento / Metodología Ejecutada}
+
+\subsection{¿En qué consiste el modelo SIR?}
+El modelo SIR sirve para representar cómo se propaga una enfermedad en un grupo de personas. Cada persona está en uno de tres estados~\cite{guia}:
+\begin{itemize}
+  \item \textbf{S (susceptible):} todavía no se ha contagiado y puede hacerlo.
+  \item \textbf{I (infectada):} tiene la enfermedad y puede contagiar a otros.
+  \item \textbf{R (recuperada):} ya se curó y no vuelve a contagiarse.
+\end{itemize}
+En nuestro caso nadie nace, muere ni llega de afuera, así que el total de personas no cambia:
+\[
+N = S + I + R = 100.
+\]
+Dos valores controlan el modelo: $\beta$, que indica qué tan fácil ocurre un contagio, y $\gamma$, que indica qué tan rápido se recupera una persona. La ficha los relaciona con tres ecuaciones que describen el paso de S a I y de I a R:
+\begin{align*}
+\frac{dS}{dt} &= -\beta\frac{SI}{N}, &
+\frac{dI}{dt} &= \beta\frac{SI}{N} - \gamma I, &
+\frac{dR}{dt} &= \gamma I.
+\end{align*}
+Con $\beta = 0{,}30$ y $\gamma = 0{,}10$, el número reproductivo básico es $\mathcal{R}_0 = \beta/\gamma = 3$: en promedio, una persona infectada contagiaría a unas tres. Es solo una referencia teórica del modelo, no una cantidad exacta que deba producir cada persona en una corrida con azar.
+
+La ficha aclara que no hace falta resolver las ecuaciones: se puede simular paso a paso. Así lo hicimos, tratando a cada persona de forma individual.
+
+\begin{table}[H]
+\centering\tabestilo
+\begin{tabularx}{\textwidth}{|Y|c|}
+\hline\rowcolor{headerblue}\cab{Parámetro de la corrida base} & \cab{Valor} \\ \hline
+Población $N$ & 100 \\ \hline
+\rowcolor{rowlight}Susceptibles iniciales $S(0)$ & 95 \\ \hline
+Infectados iniciales $I(0)$ & 5 \\ \hline
+\rowcolor{rowlight}Recuperados iniciales $R(0)$ & 0 \\ \hline
+Probabilidad de contagio $\beta$ & $0{,}30$ \\ \hline
+\rowcolor{rowlight}Probabilidad de recuperación $\gamma$ & $0{,}10$ \\ \hline
+Tiempo de simulación & 100 pasos \\ \hline
+\rowcolor{rowlight}Semilla (para repetir cada corrida) & 42 \\ \hline
+\end{tabularx}
+\caption{Configuración común. Los valores proceden de la ficha; la semilla la añadimos nosotros.}
+\label{tab:parametros}
+\end{table}
+
+\subsection{Reglas que usamos en las dos herramientas}
+Antes de programar definimos unas reglas sencillas, iguales para Java y NetLogo, para que ambas representen exactamente el mismo modelo:
+
+\begin{itemize}
+  \item \textbf{Contagio.} En cada paso, cada persona infectada elige al azar a un contacto entre las otras 99 personas. Si ese contacto era susceptible al comenzar el paso, se contagia con probabilidad $\beta$; es decir, más o menos 3 de cada 10 veces.
+
+  \item \textbf{Recuperación.} En ese mismo paso, cada persona infectada tiene probabilidad $\gamma$ de recuperarse; es decir, más o menos 1 de cada 10 veces.
+
+  \item \textbf{Cambios al mismo tiempo.} Los cambios de un paso se aplican todos juntos al final. Así, quien se acaba de contagiar empieza a contagiar recién en el paso siguiente.
+
+  \item \textbf{Conteo.} Al terminar cada paso contamos cuántas personas hay en S, I y R y lo guardamos. Registramos desde $t=0$ hasta $t=100$, es decir, 101 registros, aunque ya no queden infectados.
+\end{itemize}
+
+\medskip
+Usamos la semilla 42 para poder repetir cada simulación y obtener siempre lo mismo~\cite{java}. Aun así, Java y NetLogo generan sus números al azar de forma distinta, por lo que no esperamos que den exactamente la misma evolución. Hicimos una corrida por herramienta.
+
+\medskip
+\noindent\begin{minipage}{\textwidth}
+\begin{alltt}\small
+Inicializar 95 susceptibles, 5 infectados y 0 recuperados
+Guardar el estado inicial en t = 0
+Para t = 1 hasta 100:
+    Copiar los estados de todas las personas
+    Para cada persona infectada al inicio del paso:
+        Elegir otra persona como contacto
+        Si el contacto es susceptible: contagiarlo con prob. \(\beta\)
+        Recuperarse con probabilidad \(\gamma\)
+    Aplicar los cambios al mismo tiempo
+    Contar y guardar S, I y R
+\end{alltt}
+\end{minipage}
+
+\subsection{Pasos que realizamos}
+La ficha pedía el modelo en tres herramientas; a nuestro grupo le correspondió Java, y usamos NetLogo para visualizar. No hicimos la versión en Python/SimPy. Estos fueron los pasos:
+
+\begin{enumerate}
+  \item \textbf{Analizamos la ficha y las fórmulas.} Revisamos las ecuaciones del modelo SIR, el número reproductivo y los parámetros que debíamos usar (Tabla~\ref{tab:parametros}).
+
+  \item \textbf{Definimos las reglas.} Acordamos las reglas de la sección anterior para que ambas herramientas fueran comparables.
+
+  \item \textbf{Elegimos cómo organizar el programa.} Decidimos seguir el esquema \textbf{modelo--vista--controlador} en Java, para que cada parte tuviera una sola tarea:
+  \begin{itemize}
+    \item el \emph{modelo} (\texttt{Persona} y \texttt{SimulacionSIR}) guarda las personas, sus estados y las reglas de la simulación;
+    \item la \emph{vista} (\texttt{VistaConsola}) muestra los parámetros y los resultados en la terminal;
+    \item el \emph{controlador} (\texttt{SimulacionControlador}) ejecuta el modelo y guarda los archivos;
+    \item \texttt{Main} inicia el programa y avisa si hay algún error al guardar.
+  \end{itemize}
+
+  \item \textbf{Programamos y ejecutamos Java.} Desde la carpeta del proyecto compilamos y ejecutamos con estos dos comandos:
+{\small
+\begin{verbatim}
+javac -encoding UTF-8 --release 11 -d build \
+  src/Main.java src/modelo/*.java \
+  src/vista/*.java src/controlador/*.java
+java -cp build Main
+\end{verbatim}
+}
+  Java muestra una tabla cada diez pasos, el máximo de infectados, el paso en que ocurre y lo que tardó el cálculo. Antes de simular revisa que los parámetros sean válidos (por ejemplo, que las probabilidades estén entre 0 y 1); si no lo son, avisa y no reemplaza los archivos anteriores.
+
+  \item \textbf{Guardamos los datos en archivos CSV.} Un CSV es un archivo de texto con datos separados por comas, que otras herramientas pueden leer fácilmente~\cite{csv}. Java crea dos: \texttt{resultados\_java.csv}, con la cantidad de S, I y R en cada uno de los 101 registros, y \texttt{parametros\_java.csv}, con los parámetros usados (población, infectados iniciales, $\beta$, $\gamma$, tiempo máximo y semilla). Los guarda en la carpeta \texttt{resultados} y deja una copia idéntica en la carpeta \texttt{netlogo}.
+
+  \item \textbf{Construimos el modelo en NetLogo.} Abrimos \texttt{modelo\_sir\_netlogo.nlogox} (el formato de NetLogo 7). NetLogo cumple dos funciones: simula por su cuenta con las mismas reglas y muestra la serie de Java sin modificarla. Sus elementos principales son:
+  \begin{itemize}
+    \item \textbf{Personas:} figuras que cambian de color: azul si son susceptibles, rojas si están infectadas y verdes si se recuperaron. La etiqueta \textbf{P0} marca al paciente cero, una de las cinco personas infectadas al inicio.
+    \item \textbf{ACTUALIZAR JAVA:} lee los archivos de Java, reinicia el escenario y muestra los parámetros activos. No compila ni ejecuta Java: eso se hace antes en la terminal. El botón \textbf{setup} carga los mismos archivos.
+    \item \textbf{go:} avanza la simulación propia de NetLogo hasta $t=100$; si se pulsa de nuevo, se detiene.
+    \item \textbf{PAUSA:} deslizador de 0 a 0,50 segundos que hace la animación más lenta o rápida sin cambiar los resultados.
+    \item \textbf{Cinco gráficas:} \emph{Evolucion Java}, \emph{Evolucion NetLogo} y la comparación de susceptibles, infectados y recuperados (Java en negro y NetLogo en naranja). La curva de Java se carga completa desde el inicio; la de NetLogo suma un punto por paso.
+  \end{itemize}
+
+  \item \textbf{Hicimos la corrida base.} Ejecutamos las dos herramientas con los parámetros de la Tabla~\ref{tab:parametros} y guardamos los datos.
+
+  \item \textbf{Elaboramos las gráficas del informe.} A partir de los datos de las dos herramientas preparamos las figuras que aparecen en este informe (Tabla~\ref{tab:figuras}).
+
+  \item \textbf{Probamos un cambio de parámetros.} Repetimos la simulación con $\gamma=0{,}40$ para comprobar que los datos nuevos de Java llegaban bien a NetLogo y ver el efecto de una recuperación más rápida. Para repetirlo basta con cambiar el valor en \texttt{SimulacionSIR.java}, compilar y ejecutar Java, pulsar ACTUALIZAR JAVA en NetLogo y luego \textbf{go}. El resto del trabajo se mantuvo con $\gamma=0{,}10$.
+
+  \item \textbf{Verificamos el funcionamiento.} Comprobamos que:
+  \begin{itemize}
+    \item en cada registro $S+I+R=100$, $S$ nunca aumenta y $R$ nunca disminuye;
+    \item Java genera 101 registros y las copias de los archivos son idénticas;
+    \item las cinco gráficas de NetLogo tienen los puntos esperados y, al volver a cargar los datos, no se duplican;
+    \item al pulsar \textbf{setup}, NetLogo repite la misma ejecución con la misma semilla, y \textbf{go} se detiene al llegar a $t=100$.
+  \end{itemize}
+\end{enumerate}
+
+\subsection{Gráficas del informe}
+Todas las gráficas tienen en el eje horizontal el \textit{Tiempo (pasos)} y en el vertical el \textit{Número de personas}. En las gráficas de cada herramienta, $S$ va en azul, $I$ en rojo y $R$ en verde (los mismos colores de las figuras de NetLogo); en las comparaciones, Java va en negro y NetLogo en naranja.
+
+\begin{table}[H]
+\centering\tabestilo\footnotesize
+\begin{tabularx}{\textwidth}{|c|L{0.36\textwidth}|Y|}
+\hline\rowcolor{headerblue}\cab{Fig.} & \cab{Archivo (en \texttt{figures/})} & \cab{Contenido} \\ \hline
+\ref{fig:java} & \texttt{01\_evolucion\_java} & $S(t)$, $I(t)$ y $R(t)$ de la corrida de Java. \\ \hline
+\rowcolor{rowlight}\ref{fig:netlogo} & \texttt{02\_evolucion\_netlogo} & $S(t)$, $I(t)$ y $R(t)$ de la simulación propia de NetLogo. \\ \hline
+\ref{fig:s} & \texttt{03\_comparacion\_susceptibles} & $S(t)$ de Java frente a NetLogo. \\ \hline
+\rowcolor{rowlight}\ref{fig:i} & \texttt{04\_comparacion\_infectados} & $I(t)$ de Java frente a NetLogo. \\ \hline
+\ref{fig:r} & \texttt{05\_comparacion\_recuperados} & $R(t)$ de Java frente a NetLogo. \\ \hline
+\rowcolor{rowlight}\ref{fig:gamma} & \texttt{06\_efecto\_gamma} & $I(t)$ con $\gamma=0{,}10$ y $\gamma=0{,}40$, un panel por herramienta. \\ \hline
+\end{tabularx}
+\caption{Figuras del informe, con el nombre del archivo que debe tener cada una.}
+\label{tab:figuras}
+\end{table}
+
+% =====================================================================
+\FloatBarrier
+\section{Resultados esperados}
+Según la Guía APE 004, al finalizar la práctica se espera disponer de~\cite{guia}:
+\begin{itemize}
+  \item Un modelo SIR implementado en NetLogo.
+  \item Un modelo equivalente en Python mediante SimPy~\cite{simpy} y otro en Java.
+  \item Archivos CSV generados por Python y Java.
+  \item Gráficas de evolución de susceptibles, infectados y recuperados.
+  \item Una comparación de los resultados obtenidos.
+  \item Una visualización en NetLogo con los datos generados por Python y Java.
+  \item Un análisis de las ventajas y limitaciones de cada herramienta, con énfasis en las diferencias producidas por la generación de números aleatorios.
+\end{itemize}
+Con el trabajo realizado por mi grupo logré obtener las versiones en Java y NetLogo, el CSV de Java, la visualización de su serie en NetLogo, las gráficas de comparación y una prueba de cambio de parámetros. Lo relacionado con Python/SimPy no me correspondió.
+
+% =====================================================================
+\section{Resultados}
+
+\subsection{Resumen de la corrida base}
+\begin{table}[H]
+\centering\tabestilo
+\begin{tabularx}{\textwidth}{|Y|c|c|}
+\hline\rowcolor{headerblue}\cab{Medida} & \cab{Java} & \cab{NetLogo} \\ \hline
+Registros de tiempo & 101 & 101 \\ \hline
+\rowcolor{rowlight}Máximo de infectados & 29 & 44 \\ \hline
+Primer tiempo del máximo & 31 & 11 \\ \hline
+\rowcolor{rowlight}Primer tiempo con $I=0$ & 77 & 55 \\ \hline
+Susceptibles en $t=100$ & 13 & 8 \\ \hline
+\rowcolor{rowlight}Infectados en $t=100$ & 0 & 0 \\ \hline
+Recuperados en $t=100$ & 87 & 92 \\ \hline
+\rowcolor{rowlight}Población total conservada & 100 & 100 \\ \hline
+\end{tabularx}
+\caption{Resultados de una corrida por herramienta: $N=100$, $\beta=0{,}30$, $\gamma=0{,}10$ y semilla 42.}
+\label{tab:resultados}
+\end{table}
+
+\subsection{Gráficas de la corrida base}
+Las Figuras~\ref{fig:java} a~\ref{fig:r} muestran la evolución de $S$, $I$ y $R$ por herramienta y su comparación directa.
+
+\figura{01_evolucion_java.pdf}{0.30}%
+  {Evolución SIR obtenida por Java ($N=100$, $\beta=0{,}30$, $\gamma=0{,}10$, semilla 42). El máximo de infectados es 29 en $t=$ 31; en $t=100$ quedan 13 susceptibles y 87 recuperados. }%
+  {fig:java}
+
+\figura{02_evolucion_netlogo.pdf}{0.25}%
+  {Evolución SIR calculada por NetLogo con los mismos parámetros. El primer máximo de infectados es 44 en $t=11$; al final quedan 8 susceptibles y 92 recuperados. }%
+  {fig:netlogo}
+
+\figura{03_comparacion_susceptibles.pdf}{0.25}%
+  {Comparación de susceptibles $S(t)$. Ambas series comienzan en 95 y terminan en 13 (Java, negro) y 8 (NetLogo, naranja).}%
+  {fig:s}
+
+\figura{04_comparacion_infectados.pdf}{0.25}%
+  {Comparación de infectados $I(t)$. Java alcanza su pico en $t=31$ y NetLogo en $t=11$; los infectados llegan a cero en $t=77$ y $t=55$, respectivamente.}%
+  {fig:i}
+
+\figura{05_comparacion_recuperados.pdf}{0.30}%
+  {Comparación de recuperados $R(t)$. Al final se registran 87 recuperados en Java y 92 en NetLogo.}%
+  {fig:r}
+
+\FloatBarrier
+\subsection{Efecto de cambiar $\gamma$}
+\figura{06_efecto_gamma.pdf}{0.32}%
+  {Efecto de cambiar $\gamma$ de $0{,}10$ a $0{,}40$ manteniendo los demás parámetros. Cada panel corresponde a una implementación independiente.}%
+  {fig:gamma}
+
+\begin{table}[H]
+\centering\tabestilo
+\begin{tabularx}{\textwidth}{|Y|c|c|}
+\hline\rowcolor{headerblue}\cab{Medida con $\gamma=0{,}40$} & \cab{Java} & \cab{NetLogo} \\ \hline
+Pico de infectados & 6 & 5 \\ \hline
+\rowcolor{rowlight}Primer tiempo del pico & 1 & 2 \\ \hline
+Primer tiempo sin infectados & 9 & 6 \\ \hline
+\rowcolor{rowlight}Estado final $(S,I,R)$ & $(89,0,11)$ & $(89,0,11)$ \\ \hline
+\end{tabularx}
+\caption{Corridas de demostración con $\gamma=0{,}40$ (mismos $N$, $\beta$, horizonte y semilla).}
+\label{tab:gamma}
+\end{table}
+
+\subsection{Comparación de la experiencia de implementación}
+{\footnotesize
+\setlength{\tabcolsep}{3pt}
+\tabestilo
+\begin{longtable}{|L{2.25cm}|L{4.05cm}|L{1.55cm}|L{4.05cm}|}
+\caption{Comparación basada en la experiencia obtenida durante la práctica. Los tiempos de cada herramienta abarcan tareas distintas; no se efectuó una comparación controlada de rendimiento. La columna Python/SimPy no se completa porque esa herramienta no fue asignada al grupo.}
+\label{tab:experiencia}\\
+\hline\rowcolor{headerblue}\cab{Característica} & \cab{NetLogo} & \cab{Python/SimPy} & \cab{Java} \\ \hline
+\endfirsthead
+\multicolumn{4}{c}{\tablename~\thetable{} (continuación)}\\
+\hline\rowcolor{headerblue}\cab{Característica} & \cab{NetLogo} & \cab{Python/SimPy} & \cab{Java} \\ \hline
+\endhead
+\hline
+\multicolumn{4}{r}{Continúa en la página siguiente}\\
+\endfoot
+\hline
+\endlastfoot
+Facilidad de implementación & Fue más cómodo, porque las reglas, las personas y las gráficas se arman dentro del mismo programa. & No asignado. & Tomó más trabajo: hubo que crear las clases, manejar los arreglos y programar cómo se guardan los archivos. \\ \hline
+\rowcolor{rowlight}Manejo de agentes & Cada persona es un agente con su propio estado y color. & No asignado. & Cada persona es un objeto de la clase Persona, con un estado que puede ser S, I o R. \\ \hline
+Generación de datos & Calcula su propia serie y también puede leer los CSV que genera Java. & No asignado. & Calcula la serie y la guarda en dos CSV: uno con los resultados y otro con los parámetros. \\ \hline
+\rowcolor{rowlight}Visualización & Se ve a las personas cambiar de color, y las gráficas y monitores se actualizan en pantalla. & No asignado. & Solo muestra tablas en la terminal; las curvas las vimos en NetLogo. \\ \hline
+Flexibilidad & Se puede cambiar una regla y ver enseguida cómo reaccionan las personas. & No asignado. & Al dividir el programa en modelo, vista y controlador, se puede cambiar una parte sin tocar las demás. \\ \hline
+\rowcolor{rowlight}Tiempo de ejecución & 0.006 s & No asignado. & El cálculo tardó 0{,}003274 s sin escribir archivos (una sola medición). \\ \hline
+Integración con otras herramientas & Con su extensión CSV pudo leer la serie que generó Java. & No asignado. & Copia solos los resultados y los parámetros a la carpeta de NetLogo. \\ \hline
+\end{longtable}
+}
+
+% =====================================================================
+\FloatBarrier
+\section{Análisis de Resultados}
+\setlength{\parskip}{0.55em}
+
+\subsection{Evolución en Java (Figura~\ref{fig:java})}
+Como se observa en la Figura~\ref{fig:java}, la corrida de Java empezó con 95 susceptibles, 5 infectados y ningún recuperado. Al revisar los datos, vi que al inicio el brote avanzó poco: en el paso 10 había 11 infectados. Después aumentaron hasta llegar a 29 en el paso 31, que fue el punto más alto de esta ejecución. Para entonces quedaban 22 susceptibles y ya se habían recuperado 49 personas. A partir de ahí los infectados fueron disminuyendo hasta llegar a cero en el paso 77.
+
+Lo que más me llamó la atención fue que al final el brote avanzó muy lentamente. Entre los pasos 63 y 76 quedó una sola persona infectada y no hubo nuevos contagios. Esto puede ocurrir porque, con pocos susceptibles, es menos probable que el contacto elegido sea alguien que todavía pueda contagiarse; además, cada paso existe la posibilidad de que la persona infectada se recupere. Al terminar, quedaron 13 susceptibles y 87 recuperados. En otras palabras, 87 personas habían pasado por la infección, incluidos los cinco casos iniciales, mientras que 13 nunca se contagiaron.
+
+\subsection{Evolución en NetLogo (Figura~\ref{fig:netlogo})}
+En la Figura~\ref{fig:netlogo} se aprecia que NetLogo también se empezó con 95 susceptibles, 5 infectados y 0 recuperados, pero la evolución fue distinta. En el paso 10 ya había 36 infectados y el máximo fue de 44 en el paso 11, valor que se mantuvo en el paso 12. En comparación con Java, el crecimiento fue más rápido y el pico apareció antes. Luego el número de infectados fue bajando hasta llegar a cero en el paso 55.
+
+En esta corrida, los susceptibles llegaron a 8 en el paso 28 y ya no disminuyeron después de ese momento. Al final quedaron 8 susceptibles y 92 recuperados; por tanto, 92 personas habían pasado por la infección. Al comparar ambas ejecuciones, NetLogo tuvo un pico 15 personas mayor y la infección terminó 22 pasos antes que en Java. Es una diferencia visible en los datos, aunque por sí sola no significa que NetLogo propague más la enfermedad, solo que estamos comparando la ejecución de cada herramienta.
+
+\subsection{Comparación de susceptibles, infectados y recuperados (Figuras~\ref{fig:s}, \ref{fig:i} y~\ref{fig:r})}
+\textbf{Susceptibles (Figura~\ref{fig:s}).} En la Figura~\ref{fig:s} se ve que en las dos herramientas la cantidad de susceptibles empezó en 95, pero disminuyó de manera diferente. En Java quedaron 13 al final y en NetLogo quedaron 8. Esto significa que, en la corrida de NetLogo, cinco personas más se contagiaron. La diferencia se relaciona con cómo evolucionó cada ejecución, no con un cambio en los parámetros, que se mantuvieron iguales.
+
+\medskip
+\noindent\textbf{Infectados (Figura~\ref{fig:i}).} La Figura~\ref{fig:i} muestra la diferencia más evidente entre las curvas: Java llegó a 29 infectados en el paso 31, mientras que NetLogo llegó a 44 en el paso 11. También se observa que la infección desapareció antes en NetLogo: en el paso 55 ya no había infectados, mientras que en Java esto ocurrió en el paso 77. Aunque las reglas eran las mismas, los contagios y las recuperaciones ocurrieron en distinto orden debido al azar de cada simulación.
+
+\medskip
+\noindent\textbf{Recuperados (Figura~\ref{fig:r}).} En la Figura~\ref{fig:r}, el número de recuperados fue aumentando a medida que avanzó cada brote. Al llegar al paso 100, Java registró 87 recuperados y NetLogo 92. Como en ambas ejecuciones ya no quedaban personas infectadas, estos valores indican cuántas personas pasaron por la infección, contando también a los cinco infectados iniciales. Representan el 87\% y el 92\% de la población, respectivamente.
+
+\subsection{¿Por qué difieren dos implementaciones del mismo modelo?}
+Aunque usamos los mismos parámetros y la misma semilla 42, Java y NetLogo no generan la misma secuencia de números pseudoaleatorios. La semilla sirve para repetir una corrida dentro de cada herramienta, pero no obliga a que ambas elijan los mismos contactos ni obtengan los mismos resultados. También influye el orden en que se recorren las personas y se realizan los sorteos. Por eso, en nuestras ejecuciones los picos y la duración del brote fueron distintos.
+
+Con estos datos podemos describir lo que ocurrió en cada corrida, pero no concluir que una herramienta produzca brotes más grandes o más cortos. Para comparar sus resultados con mayor seguridad habría que repetir la simulación con varias semillas y analizar medidas como el promedio y la variación de los picos y de la duración.
+
+\subsection{Efecto de la recuperación (Figura~\ref{fig:gamma}, Tabla~\ref{tab:gamma})}
+En la Figura~\ref{fig:gamma} se comparan las curvas de infectados para ambos valores de recuperación. Al aumentar la probabilidad de recuperación de $\gamma=0{,}10$ a $\gamma=0{,}40$, la relación $\mathcal{R}_0=\beta/\gamma$ pasa de 3 a 0,75, manteniendo $\beta=0{,}30$. En la corrida de Java con el nuevo valor, el número de infectados llegó a un máximo de 6 en el paso 1 y descendió a cero en el paso 9. El estado final fue $(S,I,R)=(89,0,11)$, por lo que el brote se detuvo pronto y solo 11 personas pasaron por la infección.
+
+Estos resultados son coherentes con una recuperación más probable: las personas infectadas tienen más oportunidades de recuperarse antes de que se produzcan nuevos contagios. La trayectoria de NetLogo debe compararse con sus propios datos; aunque coincida el estado final, eso no implica que ambas curvas hayan seguido el mismo camino.
+
+\subsection{Ventajas, limitaciones y ámbito de aplicación}
+Durante la práctica, NetLogo resultó más cómodo para observar el comportamiento del modelo porque permite representar a cada persona como un agente y ver los cambios de estado en pantalla, además de mostrar las gráficas. En Java hubo que escribir más código para manejar las personas, ejecutar las reglas y guardar los datos, pero esa organización permite controlar con detalle la lógica de la simulación y reutilizar sus resultados. No implementamos Python/SimPy, así que la comparación de esa herramienta se limita a lo consultado en su documentación y no a una experiencia de uso.
+
+Una limitación del trabajo es que se hizo una sola corrida por herramienta para la comparación base. Como el modelo depende del azar, los resultados pueden variar entre ejecuciones. Además, los tiempos registrados no se midieron bajo condiciones equivalentes, por lo que no sirven para afirmar cuál herramienta es más rápida en general.
+
+\subsection{Alcance de la integración}
+Guardar los resultados de Java en archivos CSV permitió separar el cálculo de la visualización. El archivo de resultados contiene la evolución de susceptibles, infectados y recuperados, mientras que el archivo de parámetros deja constancia de los valores usados en la corrida. NetLogo puede leer esos archivos y mostrar la serie de Java sin volver a calcularla, lo que facilita revisar y comparar los datos.
+
+La integración también tiene una limitación: no es automática en tiempo real. Primero se ejecuta Java para generar los archivos y después se actualizan los datos en NetLogo. Aun así, para esta práctica fue suficiente para comparar las curvas dentro de una misma interfaz.
+
+\setlength{\parskip}{0.22em}
+
+% =====================================================================
+\FloatBarrier
+\section{Preguntas de Control}
+\begin{enumerate}
+  \item \textbf{\textquestiondown{}Qué representa el modelo SIR?}
+  \par Es un modelo que muestra cómo se propaga una enfermedad en un grupo de personas. Para eso reparte a la gente en tres estados (S, I y R) y va contando cuántas personas hay en cada uno a medida que pasa el tiempo~\cite{guia}. Con eso se puede ver cuándo llega el pico del brote y cuándo se acaba. En la práctica lo simulamos persona por persona, con $N=100$.
+  \item \textbf{\textquestiondown{}Qué representan los estados S, I y R?}
+  \par \textbf{S} son las personas susceptibles: no se han contagiado, pero pueden hacerlo. \textbf{I} son las infectadas: tienen la enfermedad y pueden contagiar a otras. \textbf{R} son las recuperadas: ya se curaron y no vuelven a contagiarse~\cite{guia}. Como en nuestro modelo nadie nace, muere ni llega de afuera, siempre se cumple $S+I+R=100$.
+  \item \textbf{\textquestiondown{}Qué función cumplen los parámetros $\beta$ y $\gamma$?}
+  \par $\beta$ es la probabilidad de contagio: qué tan fácil es que una persona infectada contagie a una susceptible (usamos $0{,}30$). $\gamma$ es la probabilidad de recuperarse en cada paso (usamos $0{,}10$), así que una persona tarda en promedio unos $1/\gamma = 10$ pasos en recuperarse~\cite{guia}. Con los dos sale $\mathcal{R}_0=\beta/\gamma=3$ en la corrida base; con $\gamma=0{,}40$ baja a $0{,}75$ y el brote se apaga rápido.
+  \item \textbf{\textquestiondown{}Por qué es importante utilizar los mismos parámetros en las tres herramientas?}
+  \par Porque si cada herramienta usara valores distintos, no sabríamos si la diferencia en los resultados viene de la herramienta o de los parámetros. Con la misma población, los mismos infectados iniciales, el mismo $\beta$, el mismo $\gamma$ y las mismas reglas, lo único que cambia es la implementación y el azar~\cite{guia}. Así la comparación es justa.
+  \item \textbf{\textquestiondown{}Por qué Python, Java y NetLogo pueden producir resultados diferentes utilizando el mismo modelo?}
+  \par Porque el azar no es el mismo en cada herramienta. Los números ``al azar'' de un programa son pseudoaleatorios: salen de una fórmula que parte de una semilla. Java usa una fórmula lineal congruencial con una semilla de 48 bits~\cite{java}, mientras que NetLogo usa el Mersenne Twister~\cite{netlogo}. Poner la misma semilla (42) hace que cada herramienta se repita a sí misma, pero no hace que sorteen los mismos números. Además, en NetLogo los agentes se recorren en un orden aleatorio distinto cada vez~\cite{netlogo}, y el orden en que se hacen los sorteos cambia la historia. Por eso en nuestras corridas Java llegó a un pico de 29 infectados y NetLogo a uno de 44, con las mismas reglas. Con Python pasaría algo parecido. Igual, con una sola corrida por herramienta no podemos decir que una contagie más que la otra.
+  \item \textbf{\textquestiondown{}Qué ventajas ofrece NetLogo para representar sistemas basados en agentes?}
+  \par Que ya trae en un solo lugar todo lo que necesitamos: agentes (tortugas) con estado y color, el mundo donde se ven, botones, monitores y gráficas~\cite{netlogo}. Eso nos permitió ver el brote moviéndose y cambiando de color sin programar una interfaz aparte. También es fácil cambiar una regla y ver al instante qué pasa con los agentes. En general, los modelos basados en agentes sirven para ver cómo unas reglas sencillas a nivel individual producen un resultado en todo el grupo~\cite{romanowska2021}.
+  \item \textbf{\textquestiondown{}Qué ventajas ofrece SimPy para desarrollar simulaciones basadas en eventos?}
+  \par Esta respuesta es solo conceptual, porque no implementamos SimPy. Según su documentación, es una biblioteca de Python para simulación de eventos discretos, donde los procesos se escriben como funciones generadoras y se pueden usar recursos compartidos para representar colas o servidores~\cite{simpy}. Además, la simulación puede correr lo más rápido posible, en tiempo real o paso a paso~\cite{simpy}. Eso le conviene a sistemas con eventos y esperas (clientes, máquinas, turnos). Para nuestro SIR, que avanza en pasos fijos, la misma documentación dice que SimPy sería excesivo cuando los procesos no interactúan entre sí ni con recursos compartidos~\cite{simpy}.
+  \item \textbf{\textquestiondown{}Qué ventajas ofrece Java para implementar modelos de simulación?}
+  \par Da control total del código. Pudimos representar a cada persona como un objeto con un estado enumerado, separar el programa en modelo, vista y controlador, y usar \texttt{Random} con semilla para repetir la corrida~\cite{java}. Además, solo usamos la biblioteca estándar, sin librerías externas, y escribir los resultados a CSV fue sencillo. Lo malo es que hay que escribir más código que en NetLogo, y la visualización no viene incluida: por eso usamos NetLogo para ver las curvas. Para el tiempo, tenemos una sola medición de $0{,}003274$ s para calcular la simulación (sin escribir archivos), que no alcanza para comparar rendimiento.
+  \item \textbf{\textquestiondown{}Qué función cumple el archivo CSV en la integración Python/Java $\rightarrow$ NetLogo?}
+  \par Es el puente entre las dos herramientas. Un CSV es un archivo de texto con datos separados por comas que otros programas pueden leer fácilmente~\cite{csv}. Java guarda ahí la serie de S, I y R (resultados\_java.csv) y los parámetros usados (parametros\_java.csv). NetLogo los lee con su extensión \texttt{csv}, que puede cargar un archivo completo como una lista de listas~\cite{csv}, y con eso dibuja la curva de Java sin recalcularla ni modificarla.
+  \item \textbf{\textquestiondown{}Qué ventajas presenta separar la generación de datos de la visualización?}
+  \par Primero, el cálculo y la visualización no dependen uno del otro: podemos cambiar las gráficas sin tocar la simulación, o cambiar el modelo sin rehacer la interfaz. Segundo, el cálculo se hace una vez y se puede visualizar muchas veces. Por ejemplo, para probar $\gamma=0{,}40$ solo hubo que volver a correr Java y pulsar ACTUALIZAR JAVA en NetLogo. Tercero, los archivos guardan los resultados y los parámetros usados, lo que ayuda a repetir y revisar lo que se hizo, una idea que también se defiende en las guías de análisis reproducible para simulación~\cite{heather2026}. La limitación es que el flujo va por archivos: primero se corre Java y después se actualiza NetLogo.
+\end{enumerate}
+
+% =====================================================================
+\FloatBarrier
+\section{Conclusiones}
+\begin{itemize}
+  \item Implementar el modelo SIR en Java y NetLogo me permitió comprobar que se puede trabajar con las mismas reglas y parámetros y, aun así, obtener curvas distintas. En las dos corridas se conservaron los 100 individuos y se guardaron 101 registros, desde $t=0$ hasta $t=100$. Python/SimPy no se implementó porque no fue la herramienta asignada al grupo.
+  \item En mi experiencia, NetLogo fue más práctico para observar el brote, ya que muestra a las personas y sus cambios de estado directamente. Java requirió más código para representar a las personas y guardar los resultados, pero me permitió organizar el cálculo y exportar los datos a CSV.
+  \item En la corrida base, Java alcanzó 29 infectados en el paso 31 y NetLogo llegó a 44 en el paso 11. La diferencia se debe a la evolución aleatoria de cada ejecución; con una sola corrida por herramienta no se puede afirmar que una produzca brotes mayores de forma general. Para sostener esa comparación habría que repetir las simulaciones con distintas semillas.
+  \item Al subir $\gamma$ a $0{,}40$ en Java, el máximo fue de 6 infectados y la infección llegó a cero en el paso 9. Además, usar CSV facilitó mostrar los datos de Java en NetLogo sin volver a calcularlos allí, aunque fue necesario ejecutar Java y actualizar la lectura de los archivos manualmente.
+\end{itemize}
+
+% =====================================================================
+\section{Declaración de uso de Inteligencia Artificial}
+En esta práctica utilicé herramientas de inteligencia artificial para dos cosas: Claude me sirvió como apoyo para construir el código del modelo en NetLogo. Y por otro lado, utilicé NotebookLM para trabajar las respuestas de las preguntas de control y preparar el archivo de bibliografía referencias.bib. 
+\subsection{Prompts utilizados}
+
+\textbf{Prompt 1: Claude (código de NetLogo).}
+\begin{quote}\small
+\textit{Estoy trabajando en una práctica de simulación de un modelo SIR con 100 personas. Ayúdame a construir el código para el lenguaje de NetLogo, pues no soy muy experto en él. siguiendo las reglas y los parámetros indicados en mi codigo ya implementado en Java}
+\end{quote}
+
+\textbf{Prompt 2: NotebookLM (preguntas de control y bibliografía).}
+\begin{quote}\small
+\textit{Usando únicamente las fuentes que he cargado sobre la práctica SIR y la documentación de las herramientas, ayúdame a responder las preguntas de control con explicaciones claras y directas. Señala qué información respalda cada respuesta y conserva las referencias para poder citarlas en el informe. Después, organiza los datos bibliográficos de las fuentes que realmente se utilizaron en formato.bib sin inventar autores, títulos, fechas ni enlaces, tambien indica si falta algún dato para completar una referencia para yo consultarlo.}
+\end{quote}
+
+\subsection{Justificación del uso}
+\textbf{Herramientas utilizadas.}
+\begin{itemize}
+  \item \textbf{Claude:} apoyo para construir el código del modelo en NetLogo.
+  \item \textbf{NotebookLM:} apoyo para elaborar las respuestas a las preguntas de control y preparar el archivo referencias.bib a partir de las fuentes consultadas.
+\end{itemize}
+
+\textbf{Trabajo realizado sin IA.}
+\begin{itemize}
+  \item Elaboración del código en JAVA, la obtención de los resultados numéricos y la elaboración de las gráficas se realizaron a partir del código y de los datos de las corridas.
+  \item La redacción del procedimiento, la metodología, el análisis de resultados y las conclusiones fue realizada por mí, tomando como base el trabajo efectuado y los resultados observados.
+\end{itemize}
+
+% =====================================================================
+\FloatBarrier
+\refstepcounter{section}
+\renewcommand{\refname}{\thesection. Bibliografía}
+\bibliographystyle{ieeetr}
+\bibliography{referencias}
+
+\section{Anexos}
+\subsection{Repositorio del proyecto}
+\url{https://github.com/C-ael/Simulacion_Portafolio}
+
+\subsection{Video de demostración}
+\url{https://github.com/C-ael/Simulacion_Portafolio}
+
+\end{document}
