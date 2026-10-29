@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+~$*
+.DS_Store
+
+# Escenario guardado desde el panel
+03-simulacion/escenarios/personalizado.json

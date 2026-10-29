@@ -1,0 +1,226 @@
+import copy
+import json
+import math
+from pathlib import Path
+
+import pytest
+
+from modelo.configuracion import ErrorConfiguracion, cargar_escenario
+from modelo.simulacion import SimulacionLinea, comparar_linea, cuello_de_botella
+
+BASE = Path(__file__).resolve().parents[1] / "escenarios" / "base.json"
+
+
+@pytest.fixture
+def config():
+    cfg = cargar_escenario(BASE)
+    cfg["replicas"] = 3
+    cfg["duracion_h"] = 2000
+    cfg["calentamiento_h"] = 100
+    return cfg
+
+
+def estacion(resultado, nombre):
+    return next(e for e in resultado["estaciones"] if e["estacion"] == nombre)
+
+
+def test_configuracion_base_coincide_con_tabla_v():
+    cfg = cargar_escenario(BASE)
+    assert cfg["tasa_llegadas_h"] == 3
+    assert [(e["nombre"], e["recursos"], e["tiempo_min"]) for e in cfg["estaciones"]] == [
+        ("Corte", 1, 8),
+        ("Lijado", 1, 10),
+        ("Ensamblaje", 1, 15),
+        ("Acabado", 1, 12),
+    ]
+    assert (cfg["replicas"], cfg["duracion_h"], cfg["calentamiento_h"]) == (30, 1000, 100)
+
+
+def test_misma_semilla_repite_la_replica(config):
+    assert (SimulacionLinea(config).correr_replica(7)
+            == SimulacionLinea(config).correr_replica(7))
+
+
+def test_semillas_distintas_cambian_la_replica(config):
+    assert (SimulacionLinea(config).correr_replica(7)
+            != SimulacionLinea(config).correr_replica(8))
+
+
+def test_linea_base_se_acerca_a_la_teoria(config):
+    resultado = SimulacionLinea(config).correr_replica(11)
+    ensamblaje = estacion(resultado, "Ensamblaje")
+    assert ensamblaje["utilizacion"] == pytest.approx(0.75, abs=0.05)
+    assert estacion(resultado, "Corte")["utilizacion"] == pytest.approx(0.40, abs=0.05)
+    assert resultado["throughput_h"] == pytest.approx(3.0, abs=0.2)
+
+
+def test_ley_de_little_por_estacion(config):
+    resultado = SimulacionLinea(config).correr_replica(13)
+    for estacion_actual in resultado["estaciones"]:
+        lam = resultado["throughput_h"]
+        assert estacion_actual["lq"] == pytest.approx(
+            lam * estacion_actual["wq_min"] / 60, rel=0.1)
+
+
+def test_tiempo_de_flujo_suma_esperas_y_servicio(config):
+    resultado = SimulacionLinea(config).correr_replica(17)
+    servicio = sum(e["tiempo_min"] for e in config["estaciones"])
+    esperas = sum(e["wq_min"] for e in resultado["estaciones"])
+    assert resultado["flujo_min"] == pytest.approx(servicio + esperas, rel=0.1)
+
+
+def test_el_simulador_admite_mas_de_un_operario_si_se_configura(config):
+    """Capacidad del programa: ningún escenario del informe la usa."""
+    cfg = copy.deepcopy(config)
+    next(e for e in cfg["estaciones"] if e["nombre"] == "Ensamblaje")["recursos"] = 2
+    resultado = SimulacionLinea(cfg).correr_replica(11)
+    assert estacion(resultado, "Ensamblaje")["utilizacion"] == pytest.approx(0.375, abs=0.04)
+
+
+def test_resumen_compara_con_teoria_y_encuentra_cuello(config):
+    replicas, resumen = SimulacionLinea(config).correr_todas()
+    assert len(replicas) == 3 * 4
+    assert list(resumen["estacion"]) == ["Corte", "Lijado", "Ensamblaje", "Acabado"]
+    for columna in ["utilizacion_media", "utilizacion_teorica", "error_utilizacion_pct",
+                    "wq_min_media", "wq_min_teorico", "error_wq_pct", "capacidad_h",
+                    "cola_utilizacion_media", "cola_utilizacion_teorica",
+                    "cola_max_media", "cola_p90_media"]:
+        assert columna in resumen.columns
+    assert cuello_de_botella(resumen) == "Ensamblaje"
+
+
+def test_resumen_verifica_la_ley_de_little(config):
+    replicas, resumen = SimulacionLinea(config).correr_todas()
+    lam = replicas["throughput_h"].mean()
+    for _, fila in resumen.iterrows():
+        assert fila["lq_little"] == pytest.approx(lam * fila["wq_min_media"] / 60)
+        assert fila["error_little_pct"] == pytest.approx(
+            abs(fila["lq_media"] - fila["lq_little"]) / fila["lq_little"] * 100)
+        assert fila["error_little_pct"] < 5
+
+
+def test_metricas_de_cola_son_coherentes(config):
+    resultado = SimulacionLinea(config).correr_replica(11)
+    for actual in resultado["estaciones"]:
+        assert 0 <= actual["cola_utilizacion"] <= 1
+        assert actual["cola_max"] >= 0
+        assert 0 <= actual["cola_p90"] <= actual["cola_max"]
+
+
+def test_traza_opcional_guarda_la_primera_replica(config):
+    traza = []
+    replicas, _ = SimulacionLinea(config).correr_todas(traza=traza)
+    assert traza, "la traza de la primera réplica no puede quedar vacía"
+    assert {nombre for _, nombre, _, _ in traza} == set(replicas["estacion"].unique())
+
+
+def test_resumen_y_linea_verifican_la_ley_de_little(config):
+    cfg = copy.deepcopy(config)
+    cfg.update(replicas=2, duracion_h=500, calentamiento_h=50)
+    replicas, resumen = SimulacionLinea(cfg).correr_todas()
+
+    assert {"lq_little", "error_little_pct"} <= set(resumen.columns)
+    assert (resumen["error_little_pct"] < 5).all()
+
+    linea = comparar_linea(replicas, resumen, cfg)
+    assert linea["flujo_teorico_min"] == pytest.approx(123.333, abs=0.01)
+    assert linea["throughput_teorico_h"] == 3
+    assert linea["cuello"] == "Ensamblaje"
+    assert linea["error_flujo_pct"] < 10
+    assert linea["lq_little_total"] == pytest.approx(linea["lq_total"], rel=0.05)
+
+
+def test_la_linea_informa_capacidad_y_holgura_frente_a_la_demanda(config):
+    replicas, resumen = SimulacionLinea(config).correr_todas()
+    linea = comparar_linea(replicas, resumen, config)
+
+    assert linea["capacidad_linea_h"] == pytest.approx(4.0)
+    assert linea["cuello_capacidad"] == "Ensamblaje"
+    assert linea["holgura_h"] == pytest.approx(1.0)
+    # A λ fijo, la estación más utilizada es la de menor capacidad.
+    assert linea["cuello"] == linea["cuello_capacidad"]
+
+
+def test_falta_un_campo_y_se_rechaza(tmp_path):
+    cfg = json.loads(BASE.read_text())
+    del cfg["tasa_llegadas_h"]
+    ruta = tmp_path / "malo.json"
+    ruta.write_text(json.dumps(cfg))
+    with pytest.raises(ErrorConfiguracion, match="tasa_llegadas_h"):
+        cargar_escenario(ruta)
+
+
+@pytest.mark.parametrize("archivo, tiempo", [("base.json", 15), ("e2.json", 12), ("e3.json", 10)])
+def test_escenarios_del_informe_solo_cambian_ensamblaje(archivo, tiempo):
+    base = cargar_escenario(BASE)
+    cfg = cargar_escenario(BASE.parent / archivo)
+    ensamblaje = cfg["estaciones"][2]
+    assert (ensamblaje["nombre"], ensamblaje["recursos"], ensamblaje["tiempo_min"]) == (
+        "Ensamblaje", 1, tiempo)
+    assert all(estacion["recursos"] == 1 for estacion in cfg["estaciones"])
+    resto = {k: v for k, v in cfg.items() if k not in ("nombre", "estaciones")}
+    assert resto == {k: v for k, v in base.items() if k not in ("nombre", "estaciones")}
+    assert [e for i, e in enumerate(cfg["estaciones"]) if i != 2] == \
+        [e for i, e in enumerate(base["estaciones"]) if i != 2]
+
+
+@pytest.mark.parametrize("archivo, esperado", [("e2.json", 0.60), ("e3.json", 0.50)])
+def test_utilizacion_de_ensamblaje_en_e2_y_e3(archivo, esperado):
+    cfg = cargar_escenario(BASE.parent / archivo)
+    cfg.update(replicas=2, duracion_h=800, calentamiento_h=100)
+    _, resumen = SimulacionLinea(cfg).correr_todas()
+    fila = resumen.loc[resumen["estacion"] == "Ensamblaje"].iloc[0]
+    assert fila["utilizacion_media"] == pytest.approx(esperado, abs=0.04)
+    assert fila["utilizacion_teorica"] == pytest.approx(esperado)
+    assert fila["wq_min_teorico"] == pytest.approx(
+        60 * esperado ** 2 / (3 * (1 - esperado)), abs=0.1)
+
+
+def test_sin_muebles_medidos_las_esperas_y_el_flujo_quedan_sin_datos(config):
+    config["tasa_llegadas_h"] = 0.001  # first chair arrives long after the run ends
+    config["duracion_h"] = 2
+    config["calentamiento_h"] = 1
+    resultado = SimulacionLinea(config).correr_replica(semilla=1)
+    assert resultado["terminadas"] == 0
+    assert math.isnan(resultado["flujo_min"])
+    assert all(math.isnan(e["wq_min"]) for e in resultado["estaciones"])
+
+
+def test_sin_datos_el_resumen_no_inventa_errores_del_100(config):
+    config.update(duracion_h=0.01, calentamiento_h=0, replicas=3)
+    replicas, resumen = SimulacionLinea(config).correr_todas()
+    linea = comparar_linea(replicas, resumen, config)
+    assert resumen["wq_min_media"].isna().all()
+    assert resumen["error_wq_pct"].isna().all()
+    assert math.isnan(linea["flujo_min"])
+    assert math.isnan(linea["error_flujo_pct"])
+
+
+def test_una_linea_saturada_no_informa_un_flujo_de_cero(config):
+    config.update(tasa_llegadas_h=1000, duracion_h=150, calentamiento_h=100, replicas=1)
+    replicas, resumen = SimulacionLinea(config).correr_todas()
+    linea = comparar_linea(replicas, resumen, config)
+    # The line is saturated: no chair that arrived after warm-up gets out.
+    assert math.isnan(linea["flujo_min"]), "flow time must be 'no data', not 0 minutes"
+
+
+def test_una_linea_inestable_marca_el_cuello_por_capacidad(config):
+    config.update(tasa_llegadas_h=10, duracion_h=300, calentamiento_h=30, replicas=2)
+    replicas, resumen = SimulacionLinea(config).correr_todas()
+    linea = comparar_linea(replicas, resumen, config)
+    assert linea["estable"] is False
+    assert linea["cuello"] == "Ensamblaje"
+    assert cuello_de_botella(resumen, config) == "Ensamblaje"
+
+
+def test_una_linea_estable_lo_informa(config):
+    replicas, resumen = SimulacionLinea(config).correr_todas()
+    linea = comparar_linea(replicas, resumen, config)
+    assert linea["estable"] is True
+    assert linea["cuello"] == "Ensamblaje"
+
+
+def test_lambda_igual_a_la_capacidad_es_inestable(config):
+    config.update(tasa_llegadas_h=4, duracion_h=300, calentamiento_h=30, replicas=2)
+    replicas, resumen = SimulacionLinea(config).correr_todas()
+    assert comparar_linea(replicas, resumen, config)["estable"] is False
