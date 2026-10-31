@@ -1,0 +1,8 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+java/build/
+*.class
+.idea/
+.vscode/
