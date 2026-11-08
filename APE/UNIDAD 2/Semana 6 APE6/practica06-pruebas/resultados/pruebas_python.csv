@@ -1,0 +1,5 @@
+configuracion,chi2,gl,p_chi,decision_chi,d_ks,p_ks,decision_ks
+Guia semilla 12345,1.4160000000e+01,9,1.1674646401e-01,no rechaza,5.9602058928e-03,8.6856663866e-01,no rechaza
+Guia semilla 54321,7.2340000000e+00,9,6.1277099251e-01,no rechaza,7.4812204745e-03,6.2880353846e-01,no rechaza
+RANDU,8.8120000000e+00,9,4.5480628351e-01,no rechaza,6.3567654945e-03,8.1267299771e-01,no rechaza
+Parametros malos m=16,9.3750000000e+02,9,5.1328638486e-196,rechaza,6.2500000000e-02,1.9478126410e-34,rechaza
